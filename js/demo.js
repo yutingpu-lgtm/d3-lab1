@@ -19,8 +19,12 @@ d3.select('#demo-1')
     .style('font-size', '20px')
     .text('This text was changed by D3!');
 
+
 // TODO: change the text above to add your name
 // TODO: change the color to something else you like // keep in mind color contrast
+d3.select('#demo-1')
+    .style('color', 'purple')
+    .text('My name is ...');
 
 
 // Create and append new elements
@@ -30,6 +34,10 @@ d3.select('#demo-1')
     .style('background-color', 'lightgray');
 
 // TODO: append a new element with your favorite food and style it with a different background color
+d3.select('#demo-1')
+    .append('p')
+    .text('My favorite food is sushi')
+    .style('background-color', '#ffffff');
 
 // ============================================================================
 // SECTION 2: DATA BINDING - The Core D3 Pattern 
@@ -61,6 +69,19 @@ d3.select('#demo-2')
 // TODO: sample electricity prices instead of gas and create rectangles instead of circles; make the color of the rectangles green;
 const electricityPrices = sampledData.map(item => parseFloat(item.elec));
 // YOUR CODE GOES HERE 
+
+d3.select('#demo-2')
+    .append('svg')
+    .attr('width', 400)
+    .attr('height', 100)
+    .selectAll('rect')
+    .data(electricityPrices)
+    .join('rect')
+    .attr('x', (d, i) => i*60+10)
+    .attr('y', d => 100 - d*100)
+    .attr('width', 40)
+    .attr('height', d => d*100)
+    .attr('fill', 'green');
 
 // Remember that circle needs radius (r) and center (cx, cy) to create it,
 // while rectangles need x, y, width, and height. You can use the electricity price to determine the height of the rectangle and set a fixed width.
@@ -131,7 +152,7 @@ const barSvg = d3.select('#demo-4')
 const xBarScale = d3.scaleBand()
     .domain(top15.map(d => d.state)) // Input: state names
     .range([0, barWidth]) // Output: width of the chart
-    .padding(0.25); // Padding between bars
+    .padding(0.35); // Padding between bars
 
 // Y scale - linear scale for electricity prices
 const yBar = d3.scaleLinear()
@@ -201,21 +222,71 @@ const hBarWidth = 400 - hBarMargin.left - hBarMargin.right;
 const hBarHeight = 500 - hBarMargin.top - hBarMargin.bottom;
 
 // Create SVG for horizontal bar chart
-
+const hBarSvg = d3.select('#demo-4')
+    .append('svg')
+    .attr('viewBox', `0 0 ${hBarWidth + hBarMargin.left + hBarMargin.right} ${hBarHeight + hBarMargin.top + hBarMargin.bottom}`)
+    .attr('preserveAspectRatio', 'xMidYMid meet')
+    .style('max-width', '400px')
+    .append('g')
+    .attr('transform', `translate(${hBarMargin.left},${hBarMargin.top})`);
 
 // Create scales for the horizontal bar chart
+const xhBar = d3.scaleLinear()
+    .domain([0, d3.max(top15Gas, d => d.gas)])
+    .range([0, hBarWidth]);
 
+const yhBar = d3.scaleBand()
+    .domain(top15Gas.map(d => d.state))
+    .range([0, hBarHeight])
+    .padding(0.25);
 
 // Create axes and append them to the svg
 
+const xAxisHBar = d3.axisBottom(xhBar)
+    .ticks(5)
+    .tickFormat(d => `$${d.toFixed(2)}`);
+
+hBarSvg.append('g')
+    .attr('transform', `translate(0, ${hBarHeight})`)
+    .call(xAxisHBar);
+
+const yAxisHBar = d3.axisLeft(yhBar);
+
+hBarSvg.append('g')
+    .attr('transform', 'translate(0, 0)')
+    .call(yAxisHBar)
+    .selectAll('text')
+    .attr('text-anchor', 'end')
+    .style('font-size', '11px');
 
 // Create and append bars to the chart
-
+hBarSvg.selectAll('rect')
+    .data(top15Gas)
+    .join('rect')
+    .attr('x', 0)
+    .attr('y', d => yhBar(d.state))
+    .attr('width', d => xhBar(d.gas))
+    .attr('height', d => yhBar.bandwidth())
+    .attr('fill', 'orange')
+    .attr('rx', 3);
 
 // Chart title
-
+hBarSvg.append('text')
+    .attr('x', hBarWidth / 2)
+    .attr('y', -10)
+    .attr('text-anchor', 'middle')
+    .style('font-size', '14px')
+    .style('font-weight', 'bold')
+    .text('Top 15 States by Gas Price ($/gallon)');
 
 // X axis label
+hBarSvg.append('text')
+    .attr('x', hBarWidth / 2)
+    .attr('y', hBarHeight + 40)
+    .attr('text-anchor', 'middle')
+    .style('font-size', '12px')
+    .text('GasPrice ($/gallon)');
+
 
 
 // ============================================================================
